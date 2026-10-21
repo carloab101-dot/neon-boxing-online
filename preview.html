@@ -3306,7 +3306,7 @@ function updHelp(){const h=document.getElementById('help');if(!h)return;const ad
  h.textContent=(adv?'ADVENTURE KEYS · ':'BOXING KEYS · ')+t(0)+'   |   '+((adv&&G.mode==='adv'&&!G.advP2)?'SOLO: arrows move · ↑ jab · ↓ guard · I O P specials · Enter dash also work':t(1))+'   |   '+(adv?'drag = rotate camera · ':'')+'Esc restart';}
 function pause(on){G.paused=!!on;for(const i of IN){i.l=i.r=i.block=i.jump=i.in=i.out=0;i.queue.length=0;}}
 function showMenu(){clearClash();pause(true);G.ui='menu';G.ov.innerHTML='<div class="card"><h1>NEON BRAWLERS 2</h1><p class="sub">Tora &amp; Mochi mech showdown</p>'+
- '<button class="mb big2" id="nb2open">🌐 ONLINE · 2 COMPUTERS<small>first-person boxing</small></button><button class="mb big2" data-mode="vs2">👥 2 PLAYERS<small>same keyboard</small></button><button class="mb" data-mode="vs1">VERSUS · 1P vs CPU</button><button class="mb" data-mode="adv" data-solo="1">ADVENTURE · SOLO</button><button class="mb" data-mode="adv" data-solo="0">ADVENTURE · CO-OP (2P)</button>'+
+ '<button class="mb big2" id="nb2open">🌐 ONLINE · 2 COMPUTERS<small>online boxing</small></button><button class="mb big2" data-mode="vs2">👥 2 PLAYERS<small>same keyboard</small></button><button class="mb" data-mode="vs1">VERSUS · 1P vs CPU</button><button class="mb" data-mode="adv" data-solo="1">ADVENTURE · SOLO</button><button class="mb" data-mode="adv" data-solo="0">ADVENTURE · CO-OP (2P)</button>'+
  '<button class="mb alt" id="mKeys">⌨ CONTROLS / KEYBINDS</button><button class="mb fs" id="mFs">'+(FS.el()?'⛶ EXIT FULL':'⛶ FULLSCREEN')+'</button>'+(IS_TOUCH?'<p class="note">On a phone the touch pad drives Player 1. 2P modes need a keyboard.</p>':'<p class="note">P1: A D move · W jab · S guard · Z X C specials · Space dash &nbsp;|&nbsp; P2: ← → · ↑ jab · ↓ guard · I O P · Enter dash · Esc restarts</p>')+'</div>';
  G.ov.style.display='flex';G.ov.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.solo!=null)G.advP2=b.dataset.solo!=='1';showSelect(b.dataset.mode);});G.ov.querySelector('#mKeys').onclick=()=>showKeys(true,'menu');G.ov.querySelector('#mFs').onclick=()=>fsToggle();iosTip(false);}
 /* ===== Stage D2: fighter stat sheets on character select (all numbers read from the live game data) ===== */
@@ -17210,7 +17210,7 @@ background:linear-gradient(160deg,rgba(30,10,60,.9),rgba(5,20,40,.9));border:1px
 #nb2rm{position:absolute;left:50%;top:56%;transform:translateX(-50%);display:none}
 body.nb2on>div:not(#three):not(#nb2){display:none!important}`;document.head.appendChild(css);
 const root=document.createElement('div');root.id='nb2';root.innerHTML=`
-<div class="pn" id="nb2menu"><h1>NEON BRAWLERS 2</h1><div style="color:#f6f;letter-spacing:4px">ONLINE BOXING · 2 COMPUTERS · FIRST PERSON</div>
+<div class="pn" id="nb2menu"><h1>NEON BRAWLERS 2</h1><div style="color:#f6f;letter-spacing:4px">ONLINE BOXING · 2 COMPUTERS · EACH ON YOUR OWN KEYBOARD</div>
  <div id="nb2pre"><br><button id="nb2host">HOST MATCH</button><br><br><input id="nb2in" placeholder="CODE" maxlength="6"><button id="nb2join">JOIN</button><br><button id="nb2back" style="opacity:.7">← BACK TO MENU</button></div>
  <div id="nb2hostbox" style="display:none"><div style="margin-top:10px">ROOM CODE</div><div id="nb2code"></div><div id="nb2link"></div><button id="nb2copy">COPY LINK</button></div>
  <div id="nb2pick" style="display:none"><div style="margin:12px 0 4px;letter-spacing:3px;color:#0ff">PICK YOUR BRAWLER</div><div id="nb2grid"></div>
@@ -17239,14 +17239,15 @@ function poseF(i){const f=FX[i],p=S.p[i];if(!f)return;const g=GUARD[S.picks[i]];
  const mix=(P,k)=>{for(const b in P){const a=out[b]||[0,0,0];out[b]=a.map((v,j)=>v+(P[b][j]-v)*k)}};
  if(p.guard)mix(POSE.guard,1);if(p.punch)mix(POSE[p.punch],Math.sin(Math.min(1,p.pt/DUR[p.punch])*Math.PI));
  f.pose=out;applyPose(f);f.root.position.set(p.x,0,p.z);f.root.rotation.y=p.yaw;f.flash=p.hitFlash;
- f.root.visible=true;if(f.B.head)f.B.head.visible=i!==role;if(f.B.neck&&i===role)f.B.neck.children.forEach(c=>{if(c!==f.B.head)c.visible=false})}
+ f.root.visible=true}
 /* yaw convention: model faces +z rotated by yaw -> forward=(sin yaw, cos yaw) */
 const fwd=y=>[Math.sin(y),Math.cos(y)];
 const _cu=camUpdate;camUpdate=function(dt){if(!on)return _cu(dt);const me=FX[Math.max(role,0)];
  if(!started||!me){const t=performance.now()/5000;camera.fov=40;camera.position.set(Math.sin(t)*7,3,Math.cos(t)*7);camera.lookAt(0,1.2,0);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();return}
- const p=S.p[role],h=me.B.head.getWorldPosition(new THREE.Vector3()),[fx,fz]=fwd(p.yaw);
- camera.fov=72;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();camera.position.set(h.x+fx*.12,h.y+.04,h.z+fz*.12);
- if(p.hitFlash>0)camera.position.x+=(Math.random()-.5)*.05;camera.lookAt(h.x+fx*3,h.y-.25,h.z+fz*3)};
+ const p=S.p[role],o=S.p[1-role],[fx,fz]=fwd(p.yaw);
+ camera.fov=55;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+ const tx=p.x-fx*4.2-fz*.9,tz=p.z-fz*4.2+fx*.9,ty=3.6;CAMP=CAMP||{x:tx,y:ty,z:tz};const k=Math.min(1,dt*6);CAMP.x+=(tx-CAMP.x)*k;CAMP.y+=(ty-CAMP.y)*k;CAMP.z+=(tz-CAMP.z)*k;
+ camera.position.set(CAMP.x,CAMP.y,CAMP.z);if(p.hitFlash>0)camera.position.x+=(Math.random()-.5)*.06;camera.lookAt(p.x+fx*2.2-fz*.3,1.5,p.z+fz*2.2+fx*.3)};let CAMP=null;
 /* ---- input ---- */
 const keys={};let mouseDX=0,pendingPunch=null,gpPrev={};
 addEventListener('keydown',e=>{if(!on)return;keys[e.code]=1;if(!started||e.repeat)return;const m={KeyJ:'jab',KeyK:'cross',KeyL:'hook',KeyU:'upper'}[e.code];if(m)doPunch(m);e.stopImmediatePropagation()},true);
@@ -17291,7 +17292,7 @@ function lobby(){const L=$('nb2lob');L.style.display=started?'flex':'block';L.cl
  [0,1].forEach(i=>{if(connected||i==role)ensureFighter(i)})}
 function begin(){started=true;$('nb2menu').style.display='none';$('nb2hud').style.display='block';
  [0,1].forEach(i=>{ensureFighter(i);$('nb2n'+i).textContent='P'+(i+1)+' · '+MECH_INFO[S.picks[i]].name+(role==i?' (YOU)':'')});lobby()}
-setInterval(()=>{if(!connected)return;send({t:'hb'});if(performance.now()-lastMsg>4000){try{conn.close()}catch(e){}drop()}},1000);
+let hbT=performance.now();setInterval(()=>{const n=performance.now();if(n-hbT>2500)lastMsg=Math.max(lastMsg,n-1000);hbT=n;if(!connected)return;send({t:'hb'});if(n-lastMsg>12000){try{conn.close()}catch(e){}drop()}},1000);
 /* ---- sim ---- */
 function clampRing(p){const L=RS-.45;p.x=Math.max(-L,Math.min(L,p.x));p.z=Math.max(-L,Math.min(L,p.z))}
 function sep(){const a=S.p[0],b=S.p[1],dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||1e-3;if(d<.8){const k=(.8-d)/2;a.x-=dx/d*k;a.z-=dz/d*k;b.x+=dx/d*k;b.z+=dz/d*k}}
